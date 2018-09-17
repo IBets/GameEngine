@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Include">
+      <UniqueIdentifier>{d8e3654a-d030-4303-b485-eda83ff256f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{bc4c060d-945a-42e9-b9bb-e944ff8faccc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Math">
+      <UniqueIdentifier>{641050ff-e64b-4887-b5ee-89de571cc5ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Common">
+      <UniqueIdentifier>{278ab516-00e6-4ee2-bdf9-08c63b9b7970}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Containers">
+      <UniqueIdentifier>{4f1ecfb5-f849-4993-9746-dd8eddd6d4ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Network">
+      <UniqueIdentifier>{2ae46927-a275-4a02-9ad7-769f08700664}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Physics">
+      <UniqueIdentifier>{994954a1-1dad-4d4d-b79c-1339bddfa416}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Math\Detail">
+      <UniqueIdentifier>{0c9d39c2-df0a-481e-aa4d-c77f60bf8f3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Geometry">
+      <UniqueIdentifier>{9d876e20-bd14-4028-83d7-4f6e74811145}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{51201a81-9a98-495e-9d14-9f6d95208527}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Graphics">
+      <UniqueIdentifier>{820cf27f-7a1d-4345-91e3-66a1e7b2c3f2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\Hawk\Math\Math.hpp">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Math\Transform.hpp">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Common\Defines.hpp">
+      <Filter>Include\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Common\Singleton.hpp">
+      <Filter>Include\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Math\Detail\Matrix.hpp">
+      <Filter>Include\Math\Detail</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Math\Detail\Quaternion.hpp">
+      <Filter>Include\Math\Detail</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Math\Detail\Util.hpp">
+      <Filter>Include\Math\Detail</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Math\Detail\Vector.hpp">
+      <Filter>Include\Math\Detail</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Math\Color.hpp">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Common\NonCopyable.hpp">
+      <Filter>Include\Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\x64\Release\Common.hlsl" />
+    <FxCompile Include="..\x64\Release\FillGBuffer.hlsl" />
+    <FxCompile Include="..\x64\Release\SSAO.hlsl" />
+    <FxCompile Include="..\x64\Release\SSLR.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\x64\Release\FinallPass.hlsl" />
+  </ItemGroup>
+</Project>
