@@ -22,40 +22,18 @@
     <ClInclude Include="Include\Hawk\Common\Defines.hpp" />
     <ClInclude Include="Include\Hawk\Common\NonCopyable.hpp" />
     <ClInclude Include="Include\Hawk\Common\Singleton.hpp" />
+    <ClInclude Include="Include\Hawk\Components\Camera.hpp" />
+    <ClInclude Include="Include\Hawk\Components\Transform.hpp" />
+    <ClInclude Include="Include\Hawk\Geometry\Generator.hpp" />
     <ClInclude Include="Include\Hawk\Math\Color.hpp" />
+    <ClInclude Include="Include\Hawk\Math\Converters.hpp" />
     <ClInclude Include="Include\Hawk\Math\Detail\Matrix.hpp" />
     <ClInclude Include="Include\Hawk\Math\Detail\Quaternion.hpp" />
     <ClInclude Include="Include\Hawk\Math\Detail\Util.hpp" />
     <ClInclude Include="Include\Hawk\Math\Detail\Vector.hpp" />
     <ClInclude Include="Include\Hawk\Math\Math.hpp" />
+    <ClInclude Include="Include\Hawk\Math\Primitives.hpp" />
     <ClInclude Include="Include\Hawk\Math\Transform.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\x64\Release\Common.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="..\x64\Release\SSLR.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="..\x64\Release\FillGBuffer.hlsl" />
-    <FxCompile Include="..\x64\Release\SSAO.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\x64\Release\FinallPass.hlsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

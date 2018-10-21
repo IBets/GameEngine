@@ -34,6 +34,9 @@
     <Filter Include="Include\Graphics">
       <UniqueIdentifier>{820cf27f-7a1d-4345-91e3-66a1e7b2c3f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Include\Components">
+      <UniqueIdentifier>{05300c28-eaf9-4059-912a-56cb0d1a10ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Hawk\Math\Math.hpp">
@@ -66,14 +69,20 @@
     <ClInclude Include="Include\Hawk\Common\NonCopyable.hpp">
       <Filter>Include\Common</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\x64\Release\Common.hlsl" />
-    <FxCompile Include="..\x64\Release\FillGBuffer.hlsl" />
-    <FxCompile Include="..\x64\Release\SSAO.hlsl" />
-    <FxCompile Include="..\x64\Release\SSLR.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\x64\Release\FinallPass.hlsl" />
+    <ClInclude Include="Include\Hawk\Components\Camera.hpp">
+      <Filter>Include\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Components\Transform.hpp">
+      <Filter>Include\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Geometry\Generator.hpp">
+      <Filter>Include\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Math\Primitives.hpp">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Hawk\Math\Converters.hpp">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

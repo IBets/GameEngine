@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Hawk/Math/Detail/Util.hpp>
-
+//#include <Hawk/Math/Detail/Util.hpp>
+#include "./Util.hpp"
 
 namespace Hawk {
 
@@ -43,11 +43,7 @@ namespace Hawk {
 
 			template<typename T> constexpr auto operator*=(Quaternion<T>& lhs, T rhs)  noexcept->Quaternion<T>&;
 			template<typename T> constexpr auto operator/=(Quaternion<T>& lhs, T rhs)  noexcept->Quaternion<T>&;
-
 		
-		
-
-			
 
 		}
 	}
@@ -62,7 +58,7 @@ namespace Hawk {
 
 			template<typename T>
 			[[nodiscard]] ILINE constexpr auto operator==(Quaternion<T> const & lhs, Quaternion<T> const & rhs) noexcept -> bool {
-				for (auto index = 0u; index < N; index++)
+				for (auto index = 0u; index < 4; index++)
 					if (!Compare(lhs[index], rhs[index]))
 						return false;
 				return true;
@@ -84,7 +80,7 @@ namespace Hawk {
 			template<typename T>
 			[[nodiscard]] ILINE constexpr auto operator-(Quaternion<T> const & lhs, Quaternion<T> const & rhs) noexcept -> Quaternion<T> {
 				auto result = Quaternion<T>{};
-				for (auto index = 0u; index < N; index++)
+				for (auto index = 0u; index < 4; index++)
 					result[index] = lhs[index] - rhs[index];
 				return result;
 			}
@@ -100,7 +96,7 @@ namespace Hawk {
 			template<typename T>
 			[[nodiscard]]  ILINE constexpr auto operator-(Quaternion<T> const & rhs) noexcept -> Quaternion<T> {
 				auto result = Quaternion<T>{};
-				for (auto index = 0u; index < N; index++)
+				for (auto index = 0u; index < 4; index++)
 					result[index] = -rhs[index];
 				return result;
 			}

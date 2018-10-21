@@ -1,6 +1,8 @@
 #pragma once
 
-#include <Hawk/Math/Detail/Util.hpp>
+//#include <Hawk/Math/Detail/Util.hpp>
+#include "./Util.hpp"
+
 
 namespace Hawk {
 	namespace Math {
@@ -70,6 +72,8 @@ namespace Hawk {
 				constexpr Matrix(T v) noexcept;
 				constexpr auto operator()(U32 row, U32 column)       noexcept->T&;
 				constexpr auto operator()(U32 row, U32 column) const noexcept->T const&;
+
+				template <U32 M, U32 N> constexpr Matrix(Matrix<T, M, N> const& v) noexcept;
 				template <typename... Args> constexpr Matrix(typename std::enable_if<sizeof...(Args) + 1 == 3 * 3, T>::type const& head, Args... tail) noexcept;
 				template <typename... Args> constexpr Matrix(typename std::enable_if<sizeof...(Args) + 1 == 3, Vector<T, 3>>::type const& head, Args... tail) noexcept;
 			};
@@ -99,6 +103,8 @@ namespace Hawk {
 				constexpr Matrix(T v) noexcept;
 				constexpr auto operator()(U32 row, U32 column)       noexcept->T&;
 				constexpr auto operator()(U32 row, U32 column) const noexcept->T const&;
+
+				template <U32 M, U32 N> constexpr Matrix(Matrix<T, M, N> const& v) noexcept;
 				template <typename... Args> constexpr Matrix(typename std::enable_if<sizeof...(Args) + 1 == 4 * 4, T>::type const& head, Args... tail) noexcept;
 				template <typename... Args> constexpr Matrix(typename std::enable_if<sizeof...(Args) + 1 == 4, Vector<T, 4>>::type const& head, Args... tail) noexcept;
 			};
@@ -225,6 +231,21 @@ namespace Hawk {
 				return this->operator[](row * 4 + column);
 			}
 
+			template<typename T>
+			template<U32 M, U32 N>
+			ILINE constexpr Matrix<T, 4, 4>::Matrix(Matrix<T, M, N> const& v) noexcept : Matrix(T{ 1 }) {
+				for (auto i = 0u; i < (std::min)(4u, M); i++)
+					for (auto j = 0u; j < (std::min)(4u, N); j++)
+						this->operator()(i, j) = v(i, j);
+			}
+
+			template<typename T>
+			template<U32 M, U32 N>
+			ILINE constexpr Matrix<T, 3, 3>::Matrix(Matrix<T, M, N> const& v) noexcept : Matrix(T{ 1 }) {
+				for (auto i = 0u; i <  (std::min)(3u, M); i++)
+					for (auto j = 0u; j < (std::min)(3u, N); j++)
+						this->operator()(i, j) = v(i, j);
+			}
 
 
 			template<typename T, U32 M, U32 N>

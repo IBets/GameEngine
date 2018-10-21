@@ -1,22 +1,5 @@
 
 
-#include <Hawk/Math/Math.hpp>
-#include <Hawk/Math/Transform.hpp>
-#include <Hawk/Common/NonCopyable.hpp>
-#include <Hawk/Common/Singleton.hpp>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_syswm.h>
-
-#include <assimp\Importer.hpp>
-#include <assimp\scene.h>
-#include <assimp\postprocess.h>
-
-#include <DirectXTK12/DDSTextureLoader.h>
-#include <DirectXTK12/WICTextureLoader.h>
-#include <DirectXTK12/ResourceUploadBatch.h>
-#include <DirectXTK12/DirectXHelpers.h>
-
 #include <d3d12.h>
 #include <d3dx12.h>
 #include <dxgi1_4.h>
@@ -29,243 +12,30 @@
 #include <chrono>
 #include <ctime>
 
+
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include <DirectXTK12/DDSTextureLoader.h>
+#include <DirectXTK12/WICTextureLoader.h>
+#include <DirectXTK12/ResourceUploadBatch.h>
+#include <DirectXTK12/DirectXHelpers.h>
+
+
+
+#include <Hawk/Components/Camera.hpp>
+#include <Hawk/Components/Transform.hpp>
+#include <Hawk/Common/NonCopyable.hpp>
+#include <Hawk/Common/Singleton.hpp>
+
+
+
 using namespace Hawk;
-
-
-class Camera {
-public:
-	static constexpr Math::Vec3 LocalForward = { 0.0f, 0.0f, 1.0f };
-	static constexpr Math::Vec3 LocalUp      = { 0.0f, 1.0f, 0.0f };
-	static constexpr Math::Vec3 LocalRight   = { 1.0f, 0.0f, 0.0f };
-
-	constexpr Camera() noexcept;
-	constexpr auto Translate(Math::Vec3 const& v)            noexcept->Camera&;
-	constexpr auto Translate(F32 x, F32 y, F32 z)            noexcept->Camera&;
-	constexpr auto Rotate(Math::Quat const& q)               noexcept->Camera&;
-	constexpr auto Rotate(Math::Vec3 const &axis, F32 angle) noexcept->Camera&;
-	constexpr auto Rotate(F32 x, F32 y, F32 z, F32 angle)    noexcept->Camera&;
-
-	constexpr auto SetTranslation(Math::Vec3 const &v)            noexcept->void;
-	constexpr auto SetTranslation(F32 x, F32 y, F32 z)            noexcept->void;
-	constexpr auto SetRotation(Math::Quat const &q)               noexcept->void;
-	constexpr auto SetRotation(Math::Vec3 const& axis, F32 angle) noexcept->void;
-	constexpr auto SetRotation(F32 angle, F32 x, F32 y, F32 z)    noexcept->void;
-
-	constexpr auto Translation() const noexcept->Math::Vec3   const&;
-	constexpr auto Rotation()    const noexcept->Math::Quat   const&;
-	constexpr auto ToMatrix()          noexcept->Math::Mat4x4 const&;
-
-	constexpr auto Forward() const noexcept->Math::Vec3;
-	constexpr auto Right()   const noexcept->Math::Vec3;
-	constexpr auto Up()      const noexcept->Math::Vec3;
-
-private:
-	bool         m_Dirty;
-	Math::Vec3   m_Translation;
-	Math::Quat   m_Rotation;
-	Math::Mat4x4 m_World;
-
-};
-
-class Transform {
-public:
-	constexpr Transform();
-	constexpr auto Translate(Math::Vec3 const& v) noexcept->Transform&;
-	constexpr auto Translate(F32 x, F32 y, F32 z) noexcept->Transform&;
-
-	constexpr auto Scale(Math::Vec3 const& v) noexcept->Transform&;
-	constexpr auto Scale(F32 x, F32 y, F32 z) noexcept->Transform&;
-	constexpr auto Scale(F32 factor)          noexcept->Transform&;
-
-	constexpr auto Rotate(Math::Quat const& q)               noexcept->Transform&;
-	constexpr auto Rotate(Math::Vec3 const& axis, F32 angle) noexcept->Transform&;
-	constexpr auto Rotate(F32 x, F32 y, F32 z, F32 angle)    noexcept->Transform&;
-
-	constexpr auto Grow(Math::Vec3 const &v) noexcept->Transform&;
-	constexpr auto Grow(F32 x, F32 y, F32 z) noexcept->Transform&;
-	constexpr auto Grow(F32 factor)          noexcept->Transform&;
-
-	constexpr auto SetTranslation(Math::Vec3 const &t) noexcept -> void;
-	constexpr auto SetTranslation(F32 x, F32 y, F32 z) noexcept -> void;
-
-	constexpr auto SetScale(Math::Vec3 const& s) noexcept -> void;
-	constexpr auto SetScale(F32 x, F32 y, F32 z) noexcept -> void;
-	constexpr auto SetScale(F32 facor)           noexcept -> void;
-
-	constexpr auto SetRotation(Math::Quat const &q)               noexcept -> void;
-	constexpr auto SetRotation(Math::Vec3 const &axis, F32 angle) noexcept -> void;
-	constexpr auto SetRotation(F32 x, F32 y, F32 z, F32 angle)    noexcept -> void;
-
-	constexpr auto Translation() const noexcept->Math::Vec3   const&;
-	constexpr auto Scale()       const noexcept->Math::Vec3   const&;
-	constexpr auto Rotation()    const noexcept->Math::Quat   const&;
-	constexpr auto ToMatrix()          noexcept->Math::Mat4x4 const&;
-
-private:
-	bool          m_Dirty;
-	Math::Vec3    m_Translation;
-	Math::Vec3    m_Scale;
-	Math::Quat    m_Rotation;
-	Math::Mat4x4  m_Model;
-};
-
-namespace Physics {
-
-	class IntersectData {
-	public:
-		constexpr IntersectData(bool intersect, F32 distance);
-		constexpr auto IsIntersect() const noexcept->bool const&;
-		constexpr auto Distance()    const noexcept->F32  const&;
-	private:
-		bool m_IsIntersect;
-		F32  m_Distance;
-	};
-
-	class Sphere {
-	public:
-		constexpr Sphere(Math::Vec3 const& center, F32 radius) noexcept;
-
-		constexpr auto SetCenter(Math::Vec3 const &v) noexcept->void;
-		constexpr auto SetCenter(F32 x, F32 y, F32 z) noexcept->void;
-		constexpr auto SetRadius(F32 &r)              noexcept->void;
-
-		constexpr auto Center() const noexcept->Math::Vec3 const&;
-		constexpr auto Radius() const noexcept->F32;
-
-	private:
-		Math::Vec3 m_Center;
-		F32        m_Radius;
-	};
-
-	class AABB {
-	public:
-		constexpr AABB(Math::Vec3 const& center, F32 radius) noexcept;
-		constexpr auto SetMinExtends(Math::Vec3 const &v) noexcept->void;
-		constexpr auto SetMaxExtends(Math::Vec3 const &v) noexcept->void;
-		constexpr auto SetMinExtends(F32 x, F32 y, F32 z) noexcept->void;
-		constexpr auto SetMaxExtends(F32 x, F32 y, F32 z) noexcept->void;
-
-		constexpr auto MinExtends() const noexcept->Math::Vec3 const&;
-		constexpr auto MaxExtends() const noexcept->Math::Vec3 const&;
-
-	private:
-		Math::Vec3 m_MinExtends;
-		Math::Vec3 m_MaxExtends;
-		
-	};
-
-	class Plane {
-	private:
-		Math::Vec3 m_Normal;
-	};
-
-	class Object {
-	public:
-		constexpr auto Integrate(F32 delta) noexcept->void;
-	private:
-		Math::Vec3 m_Position;
-		Math::Vec3 m_Velocity;
-	};
-	
-	class Engine {
-	public:
-		constexpr auto AddObject(Object const& object)  noexcept->void;
-		constexpr auto Simulate(F32 delta)              noexcept->void;
-	private:
-		std::vector<Object> m_Objects;
-	};
-
-
-	[[nodiscard]] constexpr auto Intersect(Sphere const& lhs, Sphere const& rhs) noexcept -> IntersectData {
-		auto centerDistance = Math::Length(lhs.Center() - rhs.Center());
-		auto radiusDistance = lhs.Radius() + rhs.Radius();
-		auto distance = centerDistance - radiusDistance;
-		return IntersectData(centerDistance < radiusDistance, centerDistance - radiusDistance);
-	}
-		
-	[[nodiscard]] constexpr auto Intersect(AABB const& lhs, AABB const& rhs) noexcept -> IntersectData {
-		return IntersectData(true, 0);
-	}
-
-
-}
-
-
-
-
-
-
-
-
-
-//class Mouse final : public Singleton<Mouse>, NonCopyable {
-//public:
-//	enum class Mode {
-//		Absolute,
-//		Relative,
-//	};
-//
-//	struct State {
-//		bool    LeftButton;
-//		bool    MiddleButton;
-//		bool    RightButton;
-//		bool    Button1;
-//		bool    Button2;
-//		I32     X;
-//		I32     Y;
-//		I32     ScrollWheelValue;
-//		Mode    PositionMode;
-//	};
-//
-//	class ButtonStateTracker {
-//	public:
-//		enum class ButtonState {
-//			Up,         
-//			Held,       
-//			Released,  
-//			Pressed,    
-//		};
-//	public:
-//		ButtonStateTracker() noexcept;
-//		auto Update(const State& state) -> void;
-//		auto Reset()           noexcept -> void;
-//		auto GetLastState()       const -> State;
-//	public:
-//		ButtonState LeftButton;
-//		ButtonState MiddleButton;
-//		ButtonState RightButton;
-//		ButtonState Button1;
-//		ButtonState Button2;
-//	private:
-//		State m_LastState;
-//	};
-//
-//public:
-//	auto GetState() const -> State const&;
-//	auto ResetScrollWheelValue()  -> void;
-//
-//	auto SetMode(Mode mode)       -> void;
-//	auto SetVisible(bool visible) -> void;
-//	auto SetWindow(HWND window)   -> void;
-//
-//	auto IsConnected() const -> bool;
-//	auto IsVisible()   const -> bool;
-//	
-//	//static void ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
-//	
-//private:
-//	class Impl;
-//	std::unique_ptr<Impl> pImpl;
-//};
-//
-//class Keyboard: public Singleton<Keyboard>, NonCopyable {
-//
-//};
-//
-//class InputSystem: public Singleton<InputSystem>, NonCopyable {
-//
-//};
-
 
 
 
@@ -297,7 +67,7 @@ struct DescriptorHandle {
 	CD3DX12_GPU_DESCRIPTOR_HANDLE GPU;
 };
 
-class DescriptorHeap : NonCopyable {
+class DescriptorHeap {
 public:
 	DescriptorHeap(ID3D12Device* device, U32 size, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags);
 	auto GetCapacity() const->U32;
@@ -311,7 +81,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_Heap;
 };
 
-class Shader : NonCopyable {
+class Shader{
 public:
 	Shader(std::string const& fileName, std::string const& entryPoint, std::string const& target, std::initializer_list<D3D_SHADER_MACRO> defines = {});
 	auto GetShaderBytecode() const->D3D12_SHADER_BYTECODE;
@@ -322,7 +92,7 @@ private:
 	std::vector<D3D12_INPUT_ELEMENT_DESC>          m_InputElemetDescArray;
 };
 
-class CommandContext : NonCopyable {
+class CommandContext {
 public:
 	CommandContext(ID3D12Device* device, D3D12_COMMAND_LIST_TYPE type, D3D12_FENCE_FLAGS fenceFlags);
 	auto WaitForGPU()     -> void;
@@ -520,24 +290,6 @@ auto CommandContext::GetFenceEvent() const -> HANDLE {
 
 
 
-using VertexCollection = std::vector<std::tuple<Math::Vec3, Math::Vec3, Math::Vec2>>;
-using IndexCollection = std::vector<U16>;
-
-auto ComputeBox(Math::Vec3 const& size, bool rhcoords, bool invertn)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeSphere(F32 diameter, U64 tessellation, bool rhcoords, bool invertn)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeGeoSphere(F32 diameter, U64 tessellation, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeCylinder(F32 height, F32 diameter, U64 tessellation, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeCone(F32 diameter, F32 height, U64 tessellation, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeTorus(F32 diameter, F32 thickness, U64 tessellation, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeTetrahedron(F32 size, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeOctahedron(F32 size, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeDodecahedron(F32 size, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeIcosahedron(F32 size, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-auto ComputeTeapot(F32 size, U64 tessellation, bool rhcoords)->std::tuple<VertexCollection, IndexCollection>;
-
-
-
-
 
 
 
@@ -553,37 +305,6 @@ struct ObjectConstantBuffer {
 };
 
 
-auto GenerateTextureData(uint32_t textureWidth, uint32_t textureHeight, uint32_t texturePixelSize) -> std::vector<uint8_t> {
-	const uint32_t rowPitch = textureWidth * texturePixelSize;
-	const uint32_t cellPitch = rowPitch >> 3;
-	const uint32_t cellHeight = textureWidth >> 3;
-	const uint32_t textureSize = rowPitch * textureHeight;
-
-	std::vector<uint8_t> data(textureSize);
-	uint8_t* pData = data.data();
-
-	for (uint32_t n = 0; n < textureSize; n += texturePixelSize) {
-		uint32_t x = n % rowPitch;
-		uint32_t y = n / rowPitch;
-		uint32_t i = x / cellPitch;
-		uint32_t j = y / cellHeight;
-
-		if (i % 2 == j % 2) {
-			pData[n] = 0x00;		// R
-			pData[n + 1] = 0x00;	// G
-			pData[n + 2] = 0x00;	// B
-			pData[n + 3] = 0xff;	// A
-		}
-		else {
-			pData[n] = 0xff;		// R
-			pData[n + 1] = 0xff;	// G
-			pData[n + 2] = 0xff;	// B
-			pData[n + 3] = 0xff;	// A
-		}
-	}
-
-	return data;
-}
 
 #pragma pack(push,1)
 struct Vertex {
@@ -645,13 +366,13 @@ private:
 #undef main
 int main(int arc, char* argv[]) {
 
+
+
 	auto WINDOW_WIDTH = 1280;
 	auto WINDOW_HEIGHT = 1000;
 
 	SDL_Init(SDL_INIT_EVERYTHING);
-	auto window = SDL_CreateWindow("D3D12", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-
-
+	auto* window = SDL_CreateWindow("D3D12", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
 
 	SDL_SysWMinfo info{};
 	SDL_GetWindowWMInfo(window, &info);
@@ -727,31 +448,31 @@ int main(int arc, char* argv[]) {
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.SampleDesc = { 1, 0 };
 
-		Microsoft::WRL::ComPtr<IDXGIFactory4> factory;
-		DX::ThrowIfFailed(CreateDXGIFactory2(0, IID_PPV_ARGS(factory.GetAddressOf())));
+		Microsoft::WRL::ComPtr<IDXGIFactory4> pFactory;
+		DX::ThrowIfFailed(CreateDXGIFactory2(0, IID_PPV_ARGS(pFactory.GetAddressOf())));
 
 
 		{
 			std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter1>> adapterList;
-			Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+			Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
 			U32 index = 0;
-			while (factory->EnumAdapters1(index, adapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND) {
+			while (pFactory->EnumAdapters1(index, pAdapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND) {
 				DXGI_ADAPTER_DESC1 descAdapter;
-				adapter->GetDesc1(&descAdapter);
+				pAdapter->GetDesc1(&descAdapter);
 				std::wcout << "Description: " << descAdapter.Description << std::endl;
 				std::wcout << "Device ID: " << descAdapter.DeviceId << std::endl;
 				std::wcout << "Video memory: " << descAdapter.DedicatedVideoMemory / (2 << 20) << " Mb" << std::endl;
 				std::wcout << "System memory: " << descAdapter.DedicatedSystemMemory / (2 << 20) << " Mb" << std::endl;
 				std::wcout << "Shared sys memory: " << descAdapter.SharedSystemMemory / (2 << 20) << " Mb" << std::endl;
 				std::wcout << "------------------------------------------------------" << std::endl;
-				adapterList.push_back(adapter);
+				adapterList.push_back(pAdapter);
 				index++;
 			}
 		}
 
 
-		DX::ThrowIfFailed(factory->CreateSwapChainForHwnd(cmdGraphicsContext.GetCmdQueue(), info.info.win.window, &swapChainDesc, nullptr, nullptr, swapChainAs.GetAddressOf()));
-		DX::ThrowIfFailed(factory->MakeWindowAssociation(info.info.win.window, DXGI_MWA_NO_ALT_ENTER));
+		DX::ThrowIfFailed(pFactory->CreateSwapChainForHwnd(cmdGraphicsContext.GetCmdQueue(), info.info.win.window, &swapChainDesc, nullptr, nullptr, swapChainAs.GetAddressOf()));
+		DX::ThrowIfFailed(pFactory->MakeWindowAssociation(info.info.win.window, DXGI_MWA_NO_ALT_ENTER));
 		DX::ThrowIfFailed(swapChainAs.As(&pSwapChain));
 	}
 
@@ -809,6 +530,8 @@ int main(int arc, char* argv[]) {
 	DX::ThrowIfFailed(pSwapChain->GetBuffer(0, IID_PPV_ARGS(pRenderTargets[0].GetAddressOf())));
 	DX::ThrowIfFailed(pSwapChain->GetBuffer(1, IID_PPV_ARGS(pRenderTargets[1].GetAddressOf())));
 
+	
+
 
 	D3D12_CLEAR_VALUE depthTargetClearValue = { DXGI_FORMAT_D32_FLOAT, 0.0f };
 
@@ -831,7 +554,7 @@ int main(int arc, char* argv[]) {
 	DX::ThrowIfFailed(pDevice->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL),
+		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL),
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&depthTargetClearValue,
 		IID_PPV_ARGS(pGBufferDepth.GetAddressOf())));
@@ -854,7 +577,7 @@ int main(int arc, char* argv[]) {
 	DX::ThrowIfFailed(pDevice->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET),
+		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		nullptr,
 		IID_PPV_ARGS(pGBufferDiffuse.GetAddressOf())));
@@ -863,7 +586,7 @@ int main(int arc, char* argv[]) {
 	DX::ThrowIfFailed(pDevice->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R16G16_FLOAT, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET),
+		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R16G16_FLOAT, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,
 		nullptr,
 		IID_PPV_ARGS(pGBufferNormal.GetAddressOf())));
@@ -872,7 +595,7 @@ int main(int arc, char* argv[]) {
 	DX::ThrowIfFailed(pDevice->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS),
+		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS),
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 		nullptr,
 		IID_PPV_ARGS(pTextureAmbient.GetAddressOf())));
@@ -880,7 +603,7 @@ int main(int arc, char* argv[]) {
 	DX::ThrowIfFailed(pDevice->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS),
+		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS),
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 		nullptr,
 		IID_PPV_ARGS(pTextureReflection.GetAddressOf())));
@@ -1074,8 +797,8 @@ int main(int arc, char* argv[]) {
 	}
 
 
-	auto camera = Camera{};
-	auto transform = Transform{};
+	auto camera = Components::Camera{};
+	auto transform = Components::Transform{};
 
 
 
@@ -1106,7 +829,7 @@ int main(int arc, char* argv[]) {
 					break;
 				case SDL_MOUSEMOTION: {
 					if (mouseDown) {							
-						camera.Rotate(Camera::LocalUp, -rotateSensivity * static_cast<F32>(event.motion.xrel));
+						camera.Rotate(Components::Camera::LocalUp, -rotateSensivity * static_cast<F32>(event.motion.xrel));
 						camera.Rotate(camera.Right(),  -rotateSensivity * static_cast<F32>(event.motion.yrel));
 					}
 					break;			
@@ -1283,15 +1006,6 @@ int main(int arc, char* argv[]) {
 		}
 
 
-
-
-
-	
-
-
-
-
-
 		cmdGraphicsContext.CloseCmdList();
 		cmdGraphicsContext.ExecuteCmdList();
 		DX::ThrowIfFailed(pSwapChain->Present(0, 0));
@@ -1303,7 +1017,7 @@ int main(int arc, char* argv[]) {
 		{
 			FrameConstantBuffer frameBuffer;
 			frameBuffer.View    = camera.ToMatrix();
-			frameBuffer.Project = Math::Perspective(3.14f / 4.0f, static_cast<F32>(WINDOW_WIDTH) / static_cast<F32>(WINDOW_HEIGHT), 0.1f);
+			frameBuffer.Project = Math::Perspective(3.14f / 4.0f, static_cast<F32>(WINDOW_WIDTH) / static_cast<F32>(WINDOW_HEIGHT), 0.1f, 1000.0f);
 			std::memcpy(pDataConstBuffer[0], &frameBuffer, sizeof(FrameConstantBuffer));
 
 			ObjectConstantBuffer objectBuffer;		
@@ -1320,211 +1034,13 @@ int main(int arc, char* argv[]) {
 	}
 
 
-
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	return 0;
 }
 
 
-ILINE constexpr Camera::Camera() noexcept : m_Dirty(true), m_Rotation{ 0.0f, 0.0f, 0.0f, 1.0f }, m_Translation{ 0.0f, 0.0f, 0.0f }, m_World{ 1.0f } {}
 
-
-ILINE constexpr auto Camera::Translate(Math::Vec3 const & v) noexcept -> Camera & {
-	m_Dirty = true;
-	m_Translation += v;
-	return *this;
-}
-
-ILINE constexpr auto Camera::Translate(F32 x, F32 y, F32 z) noexcept -> Camera & {
-	return this->Translate(Math::Vec3{ x, y, z });
-}
-
-ILINE constexpr auto Camera::Rotate(Math::Quat const & q) noexcept -> Camera & {
-	m_Dirty = true;
-	m_Rotation = q * m_Rotation;
-	m_Rotation = Math::Normalize(m_Rotation);
-	return *this;
-}
-
-ILINE constexpr auto Camera::Rotate(Math::Vec3 const & axis, F32 angle) noexcept -> Camera & {
-	return this->Rotate(Math::AxisAngle(axis, angle));
-}
-
-ILINE constexpr auto Camera::Rotate(F32 x, F32 y, F32 z, F32 angle) noexcept -> Camera & {
-	return this->Rotate(Math::AxisAngle(Math::Vec3{x, y, z}, angle));
-}
-
-ILINE constexpr auto Camera::SetTranslation(Math::Vec3 const & v) noexcept -> void {
-	m_Dirty = true;
-	m_Translation = v;
-}
-
-ILINE constexpr auto Camera::SetTranslation(F32 x, F32 y, F32 z) noexcept -> void {
-	this->SetTranslation(Math::Vec3{ x, y, z });
-}
-
-ILINE constexpr auto Camera::SetRotation(Math::Quat const & q) noexcept -> void {
-	m_Dirty = true;
-	m_Rotation = q;
-}
-
-ILINE constexpr auto Camera::SetRotation(Math::Vec3 const & axis, F32 angle) noexcept -> void {
-	m_Dirty = true;
-	m_Rotation = Math::AxisAngle(axis, angle);
-}
-
-ILINE constexpr auto Camera::SetRotation(F32 x, F32 y, F32 z, F32 angle) noexcept -> void {
-	m_Dirty = true;
-	m_Rotation = Math::AxisAngle(Math::Vec3{ x, y, z }, angle);
-}
-
-[[nodiscard]] ILINE constexpr auto Camera::Translation() const noexcept -> Math::Vec3 const & {
-	return m_Translation;
-}
-
-[[nodiscard]] ILINE constexpr auto Camera::Rotation() const noexcept -> Math::Quat const & {
-	return m_Rotation;
-}
-
-[[nodiscard]] ILINE constexpr auto Camera::ToMatrix() noexcept -> Math::Mat4x4 const & {
-	if (m_Dirty) {
-		m_Dirty = false;
-		m_World = Math::Convert<Math::Quat, Math::Mat4x4>(Math::Conjugate(m_Rotation)) * Math::Translate(-m_Translation);
-	}
-	return m_World;
-}
-
-[[nodiscard]] ILINE constexpr auto Camera::Forward() const noexcept -> Math::Vec3 {
-	return Math::Rotate(m_Rotation, Camera::LocalForward);
-}
-
-[[nodiscard]] ILINE constexpr auto Camera::Right() const noexcept -> Math::Vec3 {
-	return Math::Rotate(m_Rotation, Camera::LocalRight);
-}
-
-[[nodiscard]] ILINE constexpr auto Camera::Up() const noexcept -> Math::Vec3 {
-	return Math::Rotate(m_Rotation, Camera::LocalUp);
-}
-
-ILINE constexpr Transform::Transform()
-	: m_Dirty(true)
-	, m_Translation(0.0f, 0.0f, 0.0f)
-	, m_Scale(1.0f, 1.0f, 1.0f)
-	, m_Rotation(0.0f, 0.0f, 0.0f, 1.0f)
-	, m_Model(1.0f) {}
-
-
-
-ILINE constexpr auto Transform::Translate(Math::Vec3 const & v) noexcept -> Transform & {
-	m_Dirty = true;
-	m_Translation += v;
-	return *this;
-}
-
-ILINE constexpr auto Transform::Translate(F32 x, F32 y, F32 z) noexcept -> Transform & {
-	return this->Translate(Math::Vec3{ x, y, z });
-}
-
-ILINE constexpr auto Transform::Scale(Math::Vec3 const & v) noexcept -> Transform & {
-	m_Dirty = true;
-	m_Scale *= v;
-	return *this;
-}
-
-ILINE constexpr auto Transform::Scale(F32 x, F32 y, F32 z) noexcept -> Transform & {
-	return this->Scale(Math::Vec3{ x, y, z });
-}
-
-ILINE constexpr auto Transform::Scale(F32 factor) noexcept -> Transform & {
-	return this->Scale(Math::Vec3{ factor, factor, factor });
-}
-
-ILINE constexpr auto Transform::Rotate(Math::Quat const & q) noexcept -> Transform & {
-	m_Dirty = true;
-	m_Rotation = q * m_Rotation;
-	return *this;
-}
-
-ILINE constexpr auto Transform::Rotate(Math::Vec3 const & axis, F32 angle) noexcept -> Transform & {
-	return this->Rotate(Math::AxisAngle(axis, angle));
-}
-
-ILINE constexpr auto Transform::Rotate(F32 x, F32 y, F32 z, F32 angle) noexcept -> Transform & {
-	return this->Rotate(Math::AxisAngle(Math::Vec3{ x, y, z }, angle));
-}
-
-ILINE constexpr auto Transform::Grow(Math::Vec3 const & v) noexcept -> Transform & {
-	m_Dirty = true;
-	m_Scale += v;
-	return *this;
-}
-
-ILINE constexpr auto Transform::Grow(F32 x, F32 y, F32 z) noexcept -> Transform & {
-	return this->Grow(Math::Vec3{ x, y, z });
-}
-
-ILINE constexpr auto Transform::Grow(F32 factor) noexcept -> Transform & {
-	return this->Grow(Math::Vec3{ factor, factor, factor });
-}
-
-ILINE constexpr auto Transform::SetTranslation(Math::Vec3 const & t) noexcept -> void {
-	m_Dirty = true;
-	m_Translation = t;
-}
-
-ILINE constexpr auto Transform::SetTranslation(F32 x, F32 y, F32 z) noexcept -> void {
-	this->SetTranslation(Math::Vec3{ x, y, z });
-}
-
-ILINE constexpr auto Transform::SetScale(Math::Vec3 const & s) noexcept -> void {
-	m_Dirty = true;
-	m_Scale = s;
-}
-
-ILINE constexpr auto Transform::SetScale(F32 x, F32 y, F32 z) noexcept -> void {
-	this->SetScale(Math::Vec3{ x, y, z });
-}
-
-ILINE constexpr auto Transform::SetScale(F32 factor) noexcept -> void {
-	this->SetScale(Math::Vec3{ factor, factor, factor });
-}
-
-ILINE constexpr auto Transform::SetRotation(Math::Quat const & q) noexcept -> void {
-	m_Dirty = true;
-	m_Rotation = q;
-}
-
-ILINE constexpr auto Transform::SetRotation(Math::Vec3 const & axis, F32 angle) noexcept -> void {
-	m_Dirty = true;
-	m_Rotation = Math::AxisAngle(axis, angle);
-}
-
-ILINE constexpr auto Transform::SetRotation(F32 x, F32 y, F32 z, F32 angle) noexcept -> void {
-	m_Dirty = true;
-	m_Rotation = Math::AxisAngle(Math::Vec3{x, y, z}, angle);
-}
-
-[[nodiscard]] ILINE constexpr auto Transform::Translation() const noexcept -> Math::Vec3 const & {
-	return m_Translation;
-}
-
-[[nodiscard]] ILINE constexpr auto Transform::Scale() const noexcept -> Math::Vec3 const & {
-	return m_Scale;
-}
-
-[[nodiscard]] ILINE constexpr auto Transform::Rotation() const noexcept -> Math::Quat const & {
-	return m_Rotation;
-}
-
-[[nodiscard]] ILINE constexpr auto Transform::ToMatrix() noexcept -> Math::Mat4x4 const & {
-
-	if (m_Dirty) {
-		m_Dirty = false;
-		m_Model = Math::Translate(m_Translation) * Math::Scale(m_Scale) * Math::Convert<Math::Quat, Math::Mat4x4>(m_Rotation);
-	}
-	return m_Model;
-}
 
 
 Model::Model(Microsoft::WRL::ComPtr<ID3D12Device> device, CommandContext& context, DescriptorHeap& heap, std::string filename) {
@@ -1551,8 +1067,7 @@ Model::Model(Microsoft::WRL::ComPtr<ID3D12Device> device, CommandContext& contex
 	std::vector<Vertex>   vertices;
 	std::vector<uint32_t> indices;
 
-	Material materialDefault;
-
+	Material materialDefault;	
 	
 	auto filenameDiffuse  = m_Directory + "/sponza/dummy.dds";
 	auto filenameSpecular = m_Directory + "/sponza/dummy_specular.dds";
@@ -1775,7 +1290,6 @@ Model::Model(Microsoft::WRL::ComPtr<ID3D12Device> device, CommandContext& contex
 }
 
 auto Model::Draw(CommandContext& context) const noexcept -> void {
-
 
 	ID3D12GraphicsCommandList* pCommandList = context.GetCmdList();	
 	pCommandList->IASetVertexBuffers(0, 1, &m_VBV);

@@ -1,31 +1,26 @@
 #pragma once
 
-#include <Hawk/Math/Math.hpp>
+#include "./Math.hpp"
+
+//#include <Hawk/Math/Math.hpp>
 
 namespace Hawk {
 	namespace Math {
 
-		template<typename T> constexpr auto Rotate(Quaternion<T> const& q, Vec3_tpl<T> const& v) noexcept->Vec3_tpl<T> {
-		
-			auto res  = q * Quaternion<T>{v, 0.0} * Conjugate(q);
-
-			return  Vec3_tpl<T>{res.x, res.y, res.z};
-		}
-
+		template<typename T> constexpr auto Rotate(Quaternion<T> const& q, Vec3_tpl<T> const& v) noexcept->Vec3_tpl<T>;
 		template<typename T> constexpr auto RotateX(T angle) noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto RotateY(T angle) noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto RotateZ(T angle) noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto Translate(Vec3_tpl<T> const& v)  noexcept->Mat4x4_tpl<T>;
-		template<typename T> constexpr auto Translate(T const& x, T const& y, T const& z) noexcept->Mat4x4_tpl<T>;
+		template<typename T> constexpr auto Translate(T x, T y, T z) noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto Scale(Vec3_tpl<T> const& v)  noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto Scale(T v) noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto Scale(T x, T y, T z) noexcept->Mat4x4_tpl<T>;
-		template<typename T> constexpr auto Perspective(T fov, T aspect, T zNear) noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto Orthographic(T left, T right, T bottom, T top, T zNear, T zFar) noexcept->Mat4x4_tpl<T>;
+		template<typename T> constexpr auto Orthographic(T width, T height, T zNear, T zFar) noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto LookAt(Vec3_tpl<T> const& position, Vec3_tpl<T> const& center, Vec3_tpl<T> const& up) noexcept->Mat4x4_tpl<T>;
 		template<typename T> constexpr auto AxisAngle(Vec3_tpl<T> const& v, T alpha)  noexcept->Quaternion<T>;
-		template<typename T> constexpr auto EulerAngles(Vec3_tpl<T> const& v)  noexcept->Quaternion<T>;
-	
+		
 	}
 }
 
@@ -33,127 +28,161 @@ namespace Hawk {
 namespace Hawk {
 	namespace Math {
 
+
+		template<typename T> 
+		[[nodiscard]] ILINE constexpr auto Rotate(Quaternion<T> const& q, Vec3_tpl<T> const& v) noexcept->Vec3_tpl<T> {
+			auto const u = Vec3_tpl<T>(q.x, q.y, q.z);
+			auto const s = q.w;
+			return T{ 2 } *Math::Dot(u, v) * u + (s * s - Math::Dot(u, u)) * v + T{ 2 } *s * Math::Cross(u, v);
+		}
+
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto RotateX(T angle) noexcept -> Mat4x4_tpl<T> {
-			auto const c = Cos(angle);
-			auto const s = Sin(angle);
-			return Mat4x4_tpl<T>{
-				T{ 1 }, T{ 0 }, T{ 0 }, T{ 0 },
-				T{ 0 }, T{ c }, -T{ s }, T{ 0 },
-				T{ 0 }, T{ s }, T{ c }, T{ 0 },
-				T{ 0 }, T{ 0 }, T{ 0 }, T{ 1 }};
+			auto const c = Math::Cos(angle);
+			auto const s = Math::Sin(angle);
+			auto mat = Mat4x4_tpl<T>{ T{ 1 } };
+			mat(1, 1) = c;
+			mat(1, 2) =-s;
+			mat(2, 1) = s;
+			mat(2, 2) = c;			 
+			return mat;
+
 		}
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto RotateY(T angle) noexcept -> Mat4x4_tpl<T> {
-			auto const c = Cos(angle);
-			auto const s = Sin(angle);
-			return Mat4x4_tpl<T>{
-				T{ c }, T{ 0 }, T{ s }, T{ 0 },
-				T{ 0 }, T{ 1 }, T{ 0 }, T{ 0 },
-				-T{ s }, T{ 0 }, T{ c }, T{ 0 },
-				T{ 0 }, T{ 0 }, T{ 0 }, T{ 1 }};
+			auto const c = Math::Cos(angle);
+			auto const s = Math::Sin(angle);
+			auto mat = Mat4x4_tpl<T>{ T{ 1 } };
+			mat(0, 0) = c;
+			mat(2, 0) = s;
+			mat(2, 0) =-s;
+			mat(2, 2) = c;
+			return mat;
+
 		}
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto RotateZ(T angle) noexcept -> Mat4x4_tpl<T> {
-			auto c = Cos(angle);
-			auto s = Sin(angle);
-			return Mat4x4_tpl<T>{
-				T{ c }, -T{ s }, T{ 0 }, T{ 0 },
-				T{ s }, T{ c }, T{ 0 }, T{ 0 },
-				T{ 0 }, T{ 0 }, T{ 1 }, T{ 0 },
-				T{ 0 }, T{ 0 }, T{ 0 }, T{ 1 }};
+			auto c = Math::Cos(angle);
+			auto s = Math::Sin(angle);
+			auto mat = Mat4x4_tpl<T>{ T{ 1 } };
+			mat(0, 0) = c;
+			mat(0, 1) =-s;
+			mat(1, 0) = s;
+			mat(1, 1) = c;
+			return mat;
 		}
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Translate(Vec3_tpl<T> const& v) noexcept -> Mat4x4_tpl<T> {
-			return Mat4x4_tpl<T>{
-				T{ 1 }, T{ 0 }, T{ 0 }, T{ v.x },
-				T{ 0 }, T{ 1 }, T{ 0 }, T{ v.y },
-				T{ 0 }, T{ 0 }, T{ 1 }, T{ v.z },
-				T{ 0 }, T{ 0 }, T{ 0 }, T{ 1 }};
+
+			auto mat = Mat4x4_tpl<T>{ T{ 1 } };
+			mat(0, 3) = v.x;
+			mat(1, 3) = v.y;
+			mat(2, 3) = v.z;
+			return mat;
 		}
 
 		template<typename T>
-		[[nodiscard]] ILINE constexpr auto Translate(T const & x, T const & y, T const & z) noexcept -> Mat4x4_tpl<T> {
-			return Translate(Vec3_tpl<T>{x, y, z});
+		[[nodiscard]] ILINE constexpr auto Translate(T x, T y, T z) noexcept -> Mat4x4_tpl<T> {
+			return Math::Translate({x, y, z});
 		}
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Scale(Vec3_tpl<T> const & v) noexcept -> Mat4x4_tpl<T> {
-			return Mat4x4_tpl<T>{
-				T{ v.x }, T{ 0 }, T{ 0 }, T{ 0 },
-				T{ 0 }, T{ v.y }, T{ 0 }, T{ 0 },
-				T{ 0 }, T{ 0 }, T{ v.z }, T{ 0 },
-				T{ 0 }, T{ 0 }, T{ 0 }, T{ 1 }};
+			auto mat = Mat4x4_tpl<T>{ T{ 1 } };
+			mat(0, 0) = v.x;
+			mat(1, 1) = v.y;
+			mat(2, 2) = v.z;
+			return mat;
 		}
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Scale(T x, T y, T z) noexcept -> Mat4x4_tpl<T> {
-			return  Scale(Vec3_tpl<T>{x, y, z});
+			return Math::Scale({x, y, z});
 		}
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Scale(T v) noexcept -> Mat4x4_tpl<T> {
-			return Scale(v, v, v);
+			return Math::Scale(v, v, v);
 		}
 
 		
-
 		template<typename T>
-		[[nodiscard]] ILINE constexpr auto Perspective(T fov, T aspect, T zNear) noexcept -> Mat4x4_tpl<T> {
-	
-			auto const ctg   = T{ 1 } / Tan(fov / 2);
-		
-			return Mat4x4_tpl<T>{
-				ctg / aspect,   T{ 0 }, T{ 0 }, T{ 0 },
-			    T{ 0 },  ctg,   T{ 0 }, T{ 0 },
-				T{ 0 }, T{ 0 }, T{ 0 }, zNear,
-				T{ 0 }, T{ 0 }, T{ 1 }, T{ 0 }};
+		[[nodiscard]] ILINE constexpr auto Perspective(T fov, T aspect, T zNear, T zFar) noexcept -> Mat4x4_tpl<T> {
+			auto const ctg = T{ 1 } / Tan(fov / T{ 2 });
+			auto mat = Mat4x4_tpl<T>{T{1}};
+			mat(0, 0) = ctg / aspect;
+			mat(1, 1) = ctg;
+			mat(2, 2) = zFar / (zNear, zFar);
+			mat(3, 3) = T{ 0 };
+			mat(2, 3) = zNear * zFar / (zNear - zFar);
+			mat(3, 2) = T{ 1 };
+			mat(3, 3) = T{ 0 };
+			return mat;
 		}
+
+
+
+		//template<typename T>
+		//[[nodiscard]] ILINE constexpr auto Perspective(T fov, T aspect, T zNear) noexcept -> Mat4x4_tpl<T> {
+		//
+		//	auto const ctg   = T{ 1 } / Tan(fov / 2);	
+		//	return Mat4x4_tpl<T>{
+		//		ctg / aspect,   T{ 0 }, T{ 0 }, T{ 0 },
+		//	    T{ 0 },  ctg,   T{ 0 }, T{ 0 },
+		//		T{ 0 }, T{ 0 }, T{ 0 }, zNear,
+		//		T{ 0 }, T{ 0 }, T{ 1 }, T{ 0 }};
+		//}
+
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Orthographic(T left, T right, T bottom, T top, T zNear, T zFar) noexcept -> Mat4x4_tpl<T> {
-			return Mat4x4_tpl<T>{
-				T{ 2 } / (right - left), T{ 0 }, T{ 0 }, (left + right) / (left - right),
-				T{ 0 }, T{ 2 } / (top - bottom), T{ 0 }, (top + bottom) / (bottom - top),
-				T{ 0 }, T{ 0 }, T{ 1 } / (zNear - zFar), (zNear) / (zNear - zFar),
-				T{ 0 }, T{ 0 }, T{ 0 }, T{ 1 }};
 
+			auto mat = Mat4x4_tpl<T>{ T{ 1 } };
+			mat(0, 0) = T{ 2 } / (right - left);
+			mat(1, 1) = T{ 2 } / (top - bottom);
+			mat(2, 2) = T{ 1 } / (zFar - zNear);
+
+			mat(0, 3) = (left + right) / (left - right);
+			mat(1, 3) = (top + bottom) / (bottom - top);
+			mat(2, 3) = (zNear) / (zNear - zFar);
+			return mat;
 		}
 
 		template<typename T>
+		[[nodiscard]] ILINE constexpr auto Orthographic(T width, T height, T zNear, T zFar) noexcept -> Mat4x4_tpl<T> {
+			auto mat = Mat4x4_tpl<T>{ T{ 1 } };
+			mat(0, 0) = T{ 2 } / width;
+			mat(1, 1) = T{ 2 } / height;
+			mat(2, 2) = T{ 1 } / (zNear - zFar);
+			mat(2, 3) = -(zNear) / (zNear - zFar);
+			mat(3, 3) = 1;
+			return mat;
+
+		}
+
+
+		template<typename T>
 		[[nodiscard]] ILINE constexpr auto LookAt(Vec3_tpl<T> const & position, Vec3_tpl<T> const & center, Vec3_tpl<T> const & up) noexcept -> Mat4x4_tpl<T> {
-			auto const f = Normalize(position - center);
-			auto const s = Normalize(Cross(up, f));
-			auto const u = Normalize(Cross(f, s));
+			auto const f =  Math::Normalize(center - position);
+			auto const s =  Math::Normalize(-Cross(up, f));
+			auto const u = -Math::Cross(f, s);
 
 			return Mat4x4_tpl<T>{
-				s.x, s.y, s.z, -Dot(s, position),
-				u.x, u.y, u.z, -Dot(u, position),
-				f.x, f.y, f.z, -Dot(f, position),
+				Math::Vec4(s, -Math::Dot(s, position)),
+				Math::Vec4(u, -Math::Dot(s, position)),
+				Math::Vec4(f, -Math::Dot(s, position)),
 				T{ 0 }, T{ 0 }, T{ 0 }, T{ 1 }};
 
 		}
 
 		template<typename T>
 		[[nodiscard]] constexpr auto AxisAngle(Vec3_tpl<T> const& v, T alpha) noexcept -> Quaternion<T> {
-			return Quaternion<T>{ Sin(alpha / 2) * v, Cos(alpha / 2) };
+			return { Math::Sin(T{ 0.5 } *alpha) * Math::Normalize(v), Cos(T{ 0.5 } *alpha) };
 		}
 
-		template<typename T>
-		constexpr auto EulerAngles(Vec3_tpl<T> const& v) noexcept -> Quaternion<T> {
-			
-			auto const cv = Cos(v);
-			auto const sv = Sin(v);
-
-			assert(0);
-
-			//No implement
-
-			return Quaternion<T>{ };
-		}
 
 	}
 }

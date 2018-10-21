@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Hawk/Math/Detail/Util.hpp>
+#include "./Util.hpp"
 
 namespace Hawk {
 	namespace Math {
@@ -73,8 +73,9 @@ namespace Hawk {
 			template<typename T, U32 N> constexpr auto operator!=(Vector<T, N> const& lhs, Vector<T, N> const& rhs) noexcept->bool;
 		
 			template<typename T, U32 N> constexpr auto operator+(Vector<T, N> const& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>;
-			template<typename T, U32 N> constexpr auto operator*(Vector<T, N> const& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>;
 			template<typename T, U32 N> constexpr auto operator-(Vector<T, N> const& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>;
+			template<typename T, U32 N> constexpr auto operator*(Vector<T, N> const& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>;
+			template<typename T, U32 N> constexpr auto operator/(Vector<T, N> const& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>;
 
 			template<typename T, U32 N> constexpr auto operator-(Vector<T, N> const& rhs)        noexcept->Vector<T, N>;
 			template<typename T, U32 N> constexpr auto operator*(Vector<T, N> const& lhs, T rhs) noexcept->Vector<T, N>;
@@ -84,6 +85,7 @@ namespace Hawk {
 			template<typename T, U32 N> constexpr auto operator+=(Vector<T, N>& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>&;
 			template<typename T, U32 N> constexpr auto operator-=(Vector<T, N>& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>&;
 			template<typename T, U32 N> constexpr auto operator*=(Vector<T, N>& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>&;
+			template<typename T, U32 N> constexpr auto operator/=(Vector<T, N>& lhs, Vector<T, N> const& rhs)  noexcept->Vector<T, N>&;
 
 			template<typename T, U32 N> constexpr auto operator*=(Vector<T, N>& lhs, T rhs)  noexcept->Vector<T, N>&;
 			template<typename T, U32 N> constexpr auto operator/=(Vector<T, N>& lhs, T rhs)  noexcept->Vector<T, N>&;
@@ -168,6 +170,15 @@ namespace Hawk {
 			}
 
 			template<typename T, U32 N>
+			[[nodiscard]] ILINE constexpr auto operator/(Vector<T, N> const & lhs, Vector<T, N> const & rhs) noexcept -> Vector<T, N> {
+				auto result = Vector<T, N>{};
+				for (auto index = 0; index < N; index++)
+					result[index] = lhs[index] / rhs[index];
+				return result;
+			}
+
+
+			template<typename T, U32 N>
 			[[nodiscard]] ILINE constexpr auto operator-(Vector<T, N> const& lhs, Vector<T, N> const& rhs) noexcept-> Vector<T, N> {
 				auto result = Vector<T, N>{};
 				for (auto index = 0u; index < N; index++)
@@ -216,6 +227,12 @@ namespace Hawk {
 			template<typename T, U32 N>
 			ILINE constexpr auto operator*=(Vector<T, N>& lhs, Vector<T, N> const & rhs) noexcept -> Vector<T, N>& {
 				lhs = lhs * rhs;
+				return lhs;
+			}
+
+			template<typename T, U32 N>
+			ILINE constexpr auto operator/=(Vector<T, N>& lhs, Vector<T, N> const & rhs) noexcept -> Vector<T, N>& {
+				lhs = lhs / rhs;
 				return lhs;
 			}
 

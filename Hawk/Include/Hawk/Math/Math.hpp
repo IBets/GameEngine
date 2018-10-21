@@ -1,18 +1,23 @@
 #pragma once
 
-#include <Hawk/Common/Defines.hpp>
-#include <Hawk/Math/Detail/Vector.hpp>
-#include <Hawk/Math/Detail/Matrix.hpp>
-#include <Hawk/Math/Detail/Quaternion.hpp>
+
+
+#include "../Common/Defines.hpp"
+#include "./Detail/Vector.hpp"
+#include "./Detail/Matrix.hpp"
+#include "./Detail/Quaternion.hpp"
+
+//#include <Hawk/Common/Defines.hpp>
+//#include <Hawk/Math/Detail/Vector.hpp>
+//#include <Hawk/Math/Detail/Matrix.hpp>
+//#include <Hawk/Math/Detail/Quaternion.hpp>
 
 namespace Hawk {
 
 	namespace Math {
 
 
-		template<typename T> constexpr T PI = T(3.1415926535897932385L); 
-
-
+		template<typename T> constexpr T PI = static_cast<T>(3.1415926535897932385L); 
 
 
 		template<typename T>               using Quaternion = Detail::Quaternion<T>;
@@ -108,8 +113,10 @@ namespace Hawk {
 		template<typename T> constexpr auto Acos(T a) noexcept->T;
 		template<typename T> constexpr auto Atan(T a) noexcept->T;
 		template<typename T> constexpr auto Sqrt(T a) noexcept->T;
-		template<typename T> constexpr auto Sign(T a) noexcept->T;
+		template<typename T> constexpr auto Step(T a, T x) noexcept->T;
+		template<typename T> constexpr auto Clamp(T x, T a, T b) noexcept->T;	
 		template<typename T> constexpr auto Lerp(T v0, T v1, T t) noexcept->T;
+		template<typename T> constexpr auto Smoothstep(T a, T b, T x) noexcept->T;
 
 
 		template<typename T, U32 N> constexpr auto Abs(Vector<T, N> const& v)  noexcept->Vector<T, N>;
@@ -123,7 +130,6 @@ namespace Hawk {
 		template<typename T, U32 N> constexpr auto Acos(Vector<T, N> const& v) noexcept->Vector<T, N>;
 		template<typename T, U32 N> constexpr auto Atan(Vector<T, N> const& v) noexcept->Vector<T, N>;
 		template<typename T, U32 N> constexpr auto Sqrt(Vector<T, N> const& v) noexcept->Vector<T, N>;
-		template<typename T, U32 N> constexpr auto Sign(Vector<T, N> const& v) noexcept->Vector<T, N>;
 		template<typename T, U32 N> constexpr auto Lerp(Vector<T, N> const& v0, Vector<T, N> const& v1, Vector<T, N> const& t) noexcept->Vector<T, N>;
 
 
@@ -140,42 +146,8 @@ namespace Hawk {
 		template<typename T> constexpr auto Conjugate(Quaternion<T> const& lhs)                               noexcept->Quaternion<T>;
 		template<typename T> constexpr auto Inverse(Quaternion<T> const& lhs)                                 noexcept->Quaternion<T>;
 
-		
-		template<typename Src, typename Dst> constexpr auto Convert(Src const& value) noexcept->Dst;
-		
-		
-		template<> constexpr auto Convert<Quat, Mat4x4>(Quat const& q) noexcept -> Mat4x4 {
-			
-			auto mat = Mat4x4{ 1.0f };
-	
-			auto const dxw = 2.0f * q.x * q.w;
-			auto const dyw = 2.0f * q.y * q.w;
-			auto const dzw = 2.0f * q.z * q.w;
 
-			auto const dxy = 2.0f * q.x * q.y;
-			auto const dxz = 2.0f * q.x * q.z;
-			auto const dyz = 2.0f * q.y * q.z;
 
-			auto const dxx = 2.0f * q.x * q.x;
-			auto const dyy = 2.0f * q.y * q.y;
-			auto const dzz = 2.0f * q.z * q.z;
-			
-			mat(0, 0) = 1.0f - dyy - dzz;
-			mat(0, 1) = dxy  - dzw;
-			mat(0, 2) = dxz  + dyw;
-
-			mat(1, 0) = dxy  + dzw;
-			mat(1, 1) = 1.0f - dxx - dzz;
-			mat(1, 2) = dyz  - dxw;
-
-			mat(2, 0) = dxz  - dyw;
-			mat(2, 1) = dyz  + dxw;	
-			mat(2, 2) = 1.0f - dxx - dyy;
-			return mat;
-	
-		}
-		
-		
 	}
 }
 
@@ -185,8 +157,6 @@ namespace Hawk {
 namespace Hawk {
 
 	namespace Math {
-
-
 	
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Radians(T degrees) noexcept -> T {
@@ -195,7 +165,7 @@ namespace Hawk {
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Degrees(T radians) noexcept -> T {
-			return  (T{ 180 } * radians) / PI<T>;
+			return  (T{ 180 } * radians) / PI;
 		}
 
 		template<typename T>
@@ -254,25 +224,51 @@ namespace Hawk {
 		}
 
 		template<typename T>
-		[[nodiscard]] ILINE constexpr auto Sign(T a) noexcept -> T {
-			//Change
-			return T{ 0 };
+		[[nodiscard]] ILINE constexpr auto Step(T a, T x) noexcept -> T {
+			return static_cast<T>(x >= a);
 		}
 
-
-
+		template<typename T>
+		[[nodiscard]] ILINE constexpr auto Clamp(T x, T a, T b) noexcept -> T {
+			return (x < a ? a : (x > b ? b : x));
+		}
 
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Lerp(T v0, T v1, T t) noexcept -> T {
-			return (T{ 1 } - t) * v0 + t * v1;
+			return (T(1) - t) * v0 + t * v1;
+		}
+
+		template<typename T>
+		[[nodiscard]] ILINE constexpr auto Smoothstep(T a, T b, T x) noexcept -> T {
+			if (x < a)
+				return T(0);
+			if (x >= b)
+				return T(1);
+			x = (x - a) / (b - a);
+			return (x * x * (T(3) - T(2) * x));
+		}
+
+		template<typename T>
+		[[nodiscard]] ILINE constexpr auto CubicCurve(T t) noexcept -> T {
+			return T(-2) * t * t * t + T(3) * t * t;
+		}
+
+		template<typename T>
+		[[nodiscard]] ILINE constexpr auto CosinCurve(T t) noexcept -> T {
+			return T{0.5} * (T(1) - Math::Cos(t * PI));
+		}
+
+		template<typename T>
+		[[nodiscard]] ILINE constexpr auto QuanticCurve(T t) noexcept -> T {
+			return t * t * t * (t * (t*T(6) - T(15)) + 10);
 		}
 
 		template<typename T, U32 N>
 		[[nodiscard]] ILINE constexpr auto Abs(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Abs(v[index]);
+				res[index] = Math::Abs(v[index]);
 			return res;
 		}
 
@@ -280,7 +276,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Sin(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Sin(v[index]);
+				res[index] = Math::Sin(v[index]);
 			return res;
 		}
 
@@ -288,7 +284,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Cos(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Cos(v[index]);
+				res[index] = Math::Cos(v[index]);
 			return res;
 		}
 
@@ -296,7 +292,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Tan(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Tan(v[index]);
+				res[index] = Math::Tan(v[index]);
 			return res;
 		}
 
@@ -304,7 +300,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Pow(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Pow(v[index]);
+				res[index] = Math::Pow(v[index]);
 			return res;
 		}
 
@@ -312,7 +308,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Exp(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Exp(v[index]);
+				res[index] = Math::Exp(v[index]);
 			return res;
 		}
 
@@ -320,7 +316,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Log(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Log(v[index]);
+				res[index] = Math::Log(v[index]);
 			return res;
 		}
 
@@ -328,7 +324,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Asin(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Asin(v[index]);
+				res[index] = Math::Asin(v[index]);
 			return res;
 		}
 
@@ -336,7 +332,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Acos(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Acos(v[index]);
+				res[index] = Math::Acos(v[index]);
 			return res;
 		}
 
@@ -344,7 +340,7 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Atan(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Atan(v[index]);
+				res[index] = Math::Atan(v[index]);
 			return res;
 		}
 
@@ -352,23 +348,16 @@ namespace Hawk {
 		[[nodiscard]] ILINE constexpr auto Sqrt(Vector<T, N> const & v) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Sqrt(v[index]);
+				res[index] = Math::Sqrt(v[index]);
 			return res;
 		}
 
-		template<typename T, U32 N>
-		[[nodiscard]] ILINE constexpr auto Sign(Vector<T, N> const & v) noexcept -> Vector<T, N> {
-			auto res = Vector<T, N>{};
-			for (auto index = 0; index < N; index++)
-				res[index] = Sign(v[index]);
-			return res;
-		}
 
 		template<typename T, U32 N>
 		[[nodiscard]] ILINE constexpr auto Lerp(Vector<T, N> const & v0, Vector<T, N> const & v1, Vector<T, N> const & t) noexcept -> Vector<T, N> {
 			auto res = Vector<T, N>{};
 			for (auto index = 0; index < N; index++)
-				res[index] = Lerp(v[index]);
+				res[index] = Math::Lerp(v0[index], v1[index], t[index]);
 			return res;
 		}
 
@@ -395,7 +384,6 @@ namespace Hawk {
 			auto M = Matrix<T, N, N>{ m };
 			auto I = Matrix<T, N, N>{ T{ 1 } };
 
-
 			auto temp = T{ 0 };
 			for (auto i = 0; i < N; i++) {
 
@@ -419,18 +407,18 @@ namespace Hawk {
 
 		template<typename T, U32 N>
 		[[nodiscard]] ILINE constexpr auto Length(Vector<T, N> const& v) noexcept -> T {
-			return std::sqrt(Dot(v, v));
+			return Math::Sqrt(Math::Dot(v, v));
 		}
 
 		template<typename T, U32 N>
 		[[nodiscard]] ILINE constexpr auto Distance(Vector<T, N> const& lhs, Vector<T, N> const& rhs) noexcept -> T {
-			return Length{ lhs - rhs };
+			return Math::Length(lhs - rhs);
 		}
 
 
 		template<typename T, U32 N>
 		[[nodiscard]] ILINE constexpr auto Normalize(Vector<T, N> const& v) noexcept -> Vector<T, N> {
-			auto lenght = Length<T>(v);
+			auto lenght = Math::Length(v);
 			return (lenght < std::numeric_limits<T>::epsilon()) ? Vector<T, N>{0} : v / lenght;
 		}
 
@@ -449,7 +437,7 @@ namespace Hawk {
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Normalize(Quaternion<T> const & lhs) noexcept -> Quaternion<T> {
-			return lhs / Sqrt(Dot(lhs, lhs));
+			return lhs / Math::Sqrt(Math::Dot(lhs, lhs));
 		}
 
 		template<typename T>
@@ -459,7 +447,7 @@ namespace Hawk {
 
 		template<typename T>
 		[[nodiscard]] ILINE constexpr auto Inverse(Quaternion<T> const & lhs) noexcept -> Quaternion<T> {
-			return Conjugate(lhs) / Dot(lhs, lhs);
+			return Math::Conjugate(lhs) / Math::Dot(lhs, lhs);
 		}
 
 

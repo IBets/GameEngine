@@ -1,6 +1,9 @@
 #pragma once
 
-#include <Hawk/Common/Defines.hpp>
+
+
+#include "../../Common/Defines.hpp"
+//#include <Hawk/Common/Defines.hpp>
 
 namespace Hawk {
 	namespace Math {
@@ -19,8 +22,8 @@ namespace Hawk {
 				constexpr auto end()   const noexcept->const T*;
 				constexpr auto end()         noexcept->T*;
 
-				constexpr auto data()   const noexcept->const T*;
-				constexpr auto data()		  noexcept->T*;
+				constexpr auto data()  const noexcept->const T*;
+				constexpr auto data()	     noexcept->T*;
 			};
 		}
 	}
